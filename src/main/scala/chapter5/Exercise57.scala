@@ -1,15 +1,17 @@
 package chapter5
 
-object Exercise56 extends App {
+object Exercise57 extends App {
   sealed trait Stream[+A] {
-    def foldRight[B](z: => B)(f: (A, => B) => B): B = this match {
-      case Cons(hd, tl) => f(hd(), tl().foldRight(z)(f))
-      case _ => z
+    def foldRight[B](accum: => B)(f: (A, => B) => B): B = this match {
+      case Cons(hd, tl) => f(hd(), tl().foldRight(accum)(f))
+      case _ => accum
     }
 
     def map[B](fn: A => B): Stream[B] = this.foldRight[Stream[B]](Empty) { (item, accum) =>
-      Stream(() => fn(item), accum)
+      Cons(() => fn(item), () => accum)
     }
+
+    // TODO: flatMap
 
     def toList: List[A] = this match {
       case Empty => Nil
@@ -64,6 +66,6 @@ object Exercise56 extends App {
 
   def testStream = Stream.create((1 to 5).toList map (lazify) : _*)
 
-  println(testStream.headOption)
-  println(Empty.headOption)
+  println(testStream.map(_ + 1))
+  println(testStream.map(_ + 1).toList)
 }
